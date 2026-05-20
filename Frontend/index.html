@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vogi - Agentic AI Workspace</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Geist:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ffb4ab",
+                        "surface-container-lowest": "#0c0e12",
+                        "surface-bright": "#37393e",
+                        "on-primary-fixed-variant": "#004d61",
+                        "on-primary": "#003544",
+                        "surface-variant": "#333539",
+                        "on-secondary-fixed": "#001f28",
+                        "on-error": "#690005",
+                        "on-secondary-container": "#8bc0d5",
+                        "error-container": "#93000a",
+                        "inverse-primary": "#006781",
+                        "primary-fixed": "#b9eaff",
+                        "surface-container-low": "#1a1c20",
+                        "on-tertiary": "#003641",
+                        "on-surface": "#e2e2e8",
+                        "background": "#111318",
+                        "tertiary-fixed-dim": "#71d4ee",
+                        "on-primary-fixed": "#001f29",
+                        "tertiary-container": "#309db6",
+                        "surface-dim": "#111318",
+                        "on-secondary": "#003544",
+                        "on-background": "#e2e2e8",
+                        "tertiary-fixed": "#aeecff",
+                        "surface-container": "#1e2024",
+                        "on-tertiary-container": "#002e38",
+                        "surface": "#111318",
+                        "on-surface-variant": "#bec8ce",
+                        "secondary": "#99cee4",
+                        "outline-variant": "#3e484d",
+                        "primary": "#72d3f6",
+                        "secondary-container": "#134f61",
+                        "on-primary-container": "#002e3b",
+                        "on-secondary-fixed-variant": "#0f4d5f",
+                        "outline": "#889298",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed-dim": "#72d3f6",
+                        "on-tertiary-fixed": "#001f26",
+                        "surface-container-highest": "#333539",
+                        "on-tertiary-fixed-variant": "#004e5d",
+                        "primary-container": "#319cbd",
+                        "tertiary": "#71d4ee",
+                        "secondary-fixed": "#b8eaff",
+                        "secondary-fixed-dim": "#99cee4",
+                        "inverse-surface": "#e2e2e8",
+                        "inverse-on-surface": "#2f3035",
+                        "surface-tint": "#72d3f6",
+                        "surface-container-high": "#282a2e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "sidebar-width": "260px",
+                        "margin-desktop": "32px",
+                        "unit": "4px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Hanken Grotesk"],
+                        "code-label": ["Geist"],
+                        "body-md": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "title-md": ["Hanken Grotesk"],
+                        "body-sm": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "code-label": ["13px", { "lineHeight": "18px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "title-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .pulse-dot {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+        
+        /* Wing flap animation */
+        .wing-flap {
+            animation: flap 0.8s ease-in-out infinite alternate;
+            transform-origin: center;
+        }
+        @keyframes flap {
+            0% { transform: rotateY(0deg) scaleY(1); }
+            100% { transform: rotateY(35deg) scaleY(0.9); }
+        }
+
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3e484d; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #889298; }
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 20px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+            font-feature-settings: 'liga';
+            overflow: hidden;
+            max-width: 1.25em;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md text-body-md h-screen w-full flex overflow-hidden antialiased">
+<!-- JSON Component: SideNavBar -->
+<nav class="bg-surface-container-low text-primary docked h-screen w-sidebar-width left-0 top-0 border-r border-outline-variant flex flex-col flex-shrink-0">
+<!-- Header -->
+<div class="p-gutter flex items-center gap-3 border-b border-outline-variant/50">
+<img data-vogi="logo" alt="Vogi AI Platform Logo" class="w-10 h-10 rounded-lg object-contain bg-white/5 wing-flap" src="/assets/assets/vogi-logo.png"/>
+<div>
+<h1 class="font-headline-lg text-headline-lg font-bold text-primary tracking-tight" style="font-size: 24px; line-height: 28px;">Vogi</h1>
+<p class="font-code-label text-code-label text-on-surface-variant">Agentic AI Engine</p>
+</div>
+</div>
+<!-- Scrollable Navigation Area -->
+<div class="flex-1 overflow-y-auto py-gutter px-3 flex flex-col gap-6">
+<!-- CTA -->
+<button data-vogi="new-project" class="w-full bg-primary text-on-primary-container font-title-md text-title-md py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-primary-fixed transition-colors shadow-sm mb-2">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                New Project
+</button>
+<button data-vogi="open-project" class="w-full bg-surface-container text-on-surface font-title-md text-title-md py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-surface-variant transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[20px]">folder_open</span>
+                Open Project
+</button>
+<!-- Main Tabs -->
+<ul class="flex flex-col gap-1">
+<!-- Active Tab -->
+<li class="">
+<a data-vogi="new-chat" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-container-high text-primary font-bold hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">add_comment</span>
+                        New Chat
+                    </a>
+</li>
+</ul>
+<!-- Custom Injection: Search & Recent Projects -->
+<div class="flex flex-col gap-3 mt-2">
+<div class="px-3">
+<div class="relative mb-4"><button data-vogi="search-button" type="button" class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors w-full">
+<span class="material-symbols-outlined text-[20px]">search</span>
+<span class="text-body-sm font-medium">Search...</span>
+</button><input data-vogi="search-input" class="hidden w-full bg-surface-container border border-outline-variant rounded-lg px-3 py-2 text-body-sm text-on-surface outline-none" placeholder="Search projects, chats, skills..." type="text"/></div>
+<!-- Folder Hierarchy Project List -->
+<ul data-vogi="project-list" class="flex flex-col gap-4">
+<!-- Gemma Folder -->
+<li class="">
+<div class="flex items-center gap-2 text-on-surface-variant hover:text-on-surface text-body-sm mb-1 cursor-pointer font-bold px-1">
+<span class="material-symbols-outlined text-[18px]">folder</span>
+<span class="">Gemma</span>
+</div>
+<ul class="flex flex-col gap-0.5 ml-3 pl-2">
+<li class="">
+<a class="flex items-center justify-between px-2 py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors text-body-sm font-body-sm" href="#">
+<span class="truncate pr-2">Make Gemma a local agent</span>
+<span class="text-[11px] opacity-70 flex-shrink-0">5h</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center justify-between px-2 py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors text-body-sm font-body-sm" href="#">
+<span class="truncate pr-2">Test images for violations</span>
+<span class="text-[11px] opacity-70 flex-shrink-0">6h</span>
+</a>
+</li>
+</ul>
+</li>
+<!-- Career Folder -->
+<li class="">
+<div class="flex items-center gap-2 text-on-surface-variant hover:text-on-surface text-body-sm mb-1 cursor-pointer font-bold px-1">
+<span class="material-symbols-outlined text-[18px]">folder</span>
+<span class="">career</span>
+</div>
+<ul class="flex flex-col gap-0.5 ml-3 pl-2">
+<li class="">
+<a class="flex items-center justify-between px-2 py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors text-body-sm font-body-sm" href="#">
+<span class="truncate pr-2">Ai</span>
+<span class="text-[11px] opacity-70 flex-shrink-0">3d</span>
+</a>
+</li>
+<li class="">
+<a class="flex items-center justify-between px-2 py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors text-body-sm font-body-sm" href="#">
+<span class="truncate pr-2">hyy</span>
+<span class="text-[11px] opacity-70 flex-shrink-0">3d</span>
+</a>
+</li>
+</ul>
+</li>
+<!-- Nearest-merchants Folder -->
+<li class="">
+<div class="flex items-center gap-2 text-on-surface-variant hover:text-on-surface text-body-sm mb-1 cursor-pointer font-bold px-1">
+<span class="material-symbols-outlined text-[18px]">folder</span>
+<span class="">nearest-merchants</span>
+</div>
+<ul class="flex flex-col gap-0.5 ml-3 pl-2">
+<li class="">
+<a class="flex items-center justify-between px-2 py-1.5 rounded-lg bg-surface-container-high text-on-surface transition-colors text-body-sm font-body-sm" href="#">
+<span class="truncate pr-2 font-medium">Locate image API schema</span>
+<span class="text-[11px] opacity-70 flex-shrink-0">1w</span>
+</a>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<!-- Bottom Tabs (from main tab array) -->
+<div class="px-3 mb-6">
+<div class="group cursor-pointer">
+<div class="flex items-center justify-between text-on-surface-variant hover:text-on-surface transition-colors mb-2">
+<div class="flex items-center gap-2 font-bold text-body-sm uppercase tracking-wider">
+<span class="material-symbols-outlined text-[18px]">neurology</span>
+<span class="">Skills</span>
+</div>
+<span class="material-symbols-outlined text-[16px] group-hover:rotate-180 transition-transform">expand_more</span>
+</div>
+<ul data-vogi="sidebar-skills" class="flex flex-col gap-1 pl-6">
+<li class=""><a class="flex items-center gap-2 py-1.5 text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined text-[16px]">travel_explore</span>Web Search</a></li>
+<li class=""><a class="flex items-center gap-2 py-1.5 text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined text-[16px]">image</span>Image Generation</a></li>
+<li class=""><a class="flex items-center gap-2 py-1.5 text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined text-[16px]">code</span>Code Analysis</a></li>
+<li class=""><a class="flex items-center gap-2 py-1.5 text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined text-[16px]">settings</span>Settings</a></li>
+</ul>
+</div>
+</div><ul class="flex flex-col gap-1 mt-auto">
+<li class="">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+                        Settings
+                    </a>
+</li>
+<li class="">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">help</span>
+                        Help
+                    </a>
+</li>
+</ul>
+</div>
+<!-- Footer -->
+<div class="p-4 border-t border-outline-variant/50 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+                Logout
+            </a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex overflow-hidden bg-background">
+<!-- Left/Center Column: Chat Window -->
+<div class="flex-1 flex flex-col border-r border-outline-variant relative min-w-0">
+<!-- Chat Header Area (Subtle) -->
+<header class="h-14 flex items-center px-6 border-b border-outline-variant/30 bg-surface-dim/50 backdrop-blur-sm z-10">
+<h2 class="font-title-md text-title-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">chat</span>
+                    Workspace Session
+                </h2>
+<div class="ml-auto flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full border border-outline-variant text-on-surface-variant font-code-label text-code-label text-[11px] flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary pulse-dot"></span> Online
+                    </span>
+</div>
+</header>
+<!-- Scrollable Chat Area -->
+<div data-vogi="chat-scroll" class="flex-1 overflow-y-auto p-margin-desktop flex flex-col gap-8 scroll-smooth">
+<!-- User Prompt -->
+<div class="flex gap-4 self-end max-w-[85%] group">
+<div class="flex flex-col items-end gap-1">
+<div class="bg-surface-container text-on-surface px-5 py-3 rounded-2xl rounded-tr-sm border border-outline-variant/50 shadow-sm relative"><div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"><button class="p-1.5 text-on-surface-variant hover:text-primary bg-surface-container/80 backdrop-blur-sm rounded-lg border border-outline-variant/30 flex items-center justify-center" title="Edit prompt"><span class="material-symbols-outlined text-[18px]">edit</span></button></div><p class="font-body-md text-body-md leading-relaxed">Let's build a new endpoint for the user profile service. It needs to handle GET requests and return the user's recent activity logs along with basic info. Connect it to the existing Postgres DB.</p></div>
+<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 font-body-sm text-body-sm text-[12px]">
+<span class="material-symbols-outlined text-[14px]">undo</span> Undo
+                            </button>
+</div>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center flex-shrink-0 border border-outline-variant">
+<span class="material-symbols-outlined text-[18px] text-on-surface">person</span>
+</div>
+</div>
+<!-- AI Response -->
+<div class="flex gap-4 max-w-[90%] group">
+<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 border border-primary/30 overflow-hidden">
+<img data-vogi="running-video" class="w-full h-full object-cover wing-flap hidden" src="/assets/assets/vogi-running.gif" alt="Vogi processing..."/><img data-vogi="agent-logo" alt="Agent" class="w-full h-full object-cover wing-flap" src="/assets/assets/vogi-logo.png"/>
+</div>
+<div class="flex flex-col items-start gap-2 w-full">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-title-md text-title-md text-on-surface text-[14px]">Vogi</span>
+<span class="font-code-label text-code-label text-on-surface-variant text-[12px]">v1.4.2</span>
+</div>
+<div class="text-on-surface font-body-md text-body-md leading-relaxed space-y-4">
+<p class="">I can help with that. I'll create a new Express route in <code>src/routes/profile.js</code>, set up the corresponding controller, and write the SQL query to fetch the user data joined with their recent activity logs.</p>
+<p class="">Here is the plan:</p>
+<ol class="list-decimal pl-5 space-y-1 text-on-surface-variant">
+<li class="">Define <code>GET /api/v1/profile/:userId/activity</code></li>
+<li class="">Create controller logic to validate input.</li>
+<li class="">Construct Postgres query using the <code>pg</code> pool.</li>
+</ol>
+<p class="">I'll start executing this plan now.</p>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity"><button class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 font-body-sm text-body-sm text-[12px] bg-surface-container px-2 py-1 rounded border border-outline-variant/50"><span class="material-symbols-outlined text-[14px]">content_copy</span> Copy</button><button class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 font-body-sm text-body-sm text-[12px] bg-surface-container px-2 py-1 rounded border border-outline-variant/50"><span class="material-symbols-outlined text-[14px]">format_quote</span> Quote</button><button class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 font-body-sm text-body-sm text-[12px] bg-surface-container px-2 py-1 rounded border border-outline-variant/50"><span class="material-symbols-outlined text-[14px]">undo</span> Undo</button></div>
+<div class="absolute bg-surface-container-highest border border-outline-variant rounded-lg shadow-2xl p-1 z-50 flex gap-1 hidden pointer-events-auto" id="quote-tooltip">
+<button class="flex items-center gap-1 px-2 py-1 text-xs text-on-surface hover:bg-primary/20 rounded transition-colors">
+<span class="material-symbols-outlined text-[14px]">format_quote</span>
+        Quote
+    </button>
+</div></div>
+</div>
+<!-- Another User Prompt (Shorter) -->
+<div class="flex gap-4 self-end max-w-[85%] group mt-4">
+<div class="flex flex-col items-end gap-1">
+<div class="bg-surface-container text-on-surface px-5 py-3 rounded-2xl rounded-tr-sm border border-outline-variant/50 shadow-sm relative"><div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"><button class="p-1.5 text-on-surface-variant hover:text-primary bg-surface-container/80 backdrop-blur-sm rounded-lg border border-outline-variant/30 flex items-center justify-center" title="Edit prompt"><span class="material-symbols-outlined text-[18px]">edit</span></button></div><p class="font-body-md text-body-md leading-relaxed">Let's build a new endpoint for the user profile service. It needs to handle GET requests and return the user's recent activity logs along with basic info. Connect it to the existing Postgres DB.</p></div>
+<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 font-body-sm text-body-sm text-[12px]">
+<span class="material-symbols-outlined text-[14px]">undo</span> Undo
+                            </button>
+</div>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center flex-shrink-0 border border-outline-variant">
+<span class="material-symbols-outlined text-[18px] text-on-surface">person</span>
+</div>
+</div>
+</div>
+<!-- Input Area (Docked Bottom) -->
+<div class="bg-surface border-t border-outline-variant p-4 flex-shrink-0 z-20 w-full relative shadow-[0_-4px_24px_rgba(0,0,0,0.2)]">
+<div class="max-w-4xl mx-auto flex flex-col gap-3"><div class="hidden bg-surface-container-low border-l-4 border-primary px-3 py-2 rounded-r-lg flex items-center justify-between group/quote" id="quote-preview"><div class="flex flex-col min-w-0"><span class="text-[10px] font-bold text-primary uppercase tracking-widest">Quoting</span><p class="text-body-sm text-on-surface-variant truncate italic" id="quoted-text-content"></p></div><button class="text-on-surface-variant hover:text-error transition-colors" onclick="this.parentElement.classList.add('hidden')"><span class="material-symbols-outlined text-[18px]">close</span></button></div>
+<!-- Context Controls Bar -->
+<div class="flex items-center justify-between text-body-sm font-body-sm text-on-surface-variant">
+<div class="flex items-center gap-3">
+<div class="relative">
+<button id="model-select-btn" class="flex items-center gap-1 hover:text-on-surface transition-colors bg-surface-container px-2 py-1 rounded-md border border-outline-variant/50 whitespace-nowrap flex-shrink-0">
+<span class="material-symbols-outlined text-[16px] flex-shrink-0">memory</span>
+                                <span id="current-model-name" class="truncate max-w-[100px]">Loading...</span>
+                                <span class="material-symbols-outlined text-[14px] flex-shrink-0">expand_more</span>
+</button>
+<div id="model-dropdown" class="absolute bottom-full left-0 mb-2 w-64 bg-surface-container-high border border-outline-variant rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.5)] overflow-hidden flex flex-col z-20 hidden">
+<div class="px-3 py-2 border-b border-outline-variant/50 flex items-center justify-between bg-surface-container/50">
+<span class="font-code-label text-[11px] text-outline uppercase tracking-wider font-semibold">Select Model</span>
+</div>
+<ul id="model-list" class="flex flex-col py-1 max-h-60 overflow-y-auto">
+</ul>
+</div>
+</div>
+<div class="h-4 w-px bg-outline-variant"></div>
+<div class="relative">
+<button id="permissions-btn" type="button" class="flex items-center gap-1 hover:text-on-surface transition-colors px-2 py-1 rounded-md whitespace-nowrap flex-shrink-0">
+<span class="material-symbols-outlined text-[16px] text-error flex-shrink-0">lock_open</span>
+                                <span id="current-permission">Full Access</span>
+                                <span class="material-symbols-outlined text-[14px] flex-shrink-0">expand_more</span>
+</button>
+<div id="permissions-dropdown" class="absolute bottom-full right-0 mb-2 w-48 bg-surface-container-high border border-outline-variant rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.5)] overflow-hidden flex flex-col z-20 hidden">
+<div class="px-3 py-2 border-b border-outline-variant/50 flex items-center justify-between bg-surface-container/50">
+<span class="font-code-label text-[11px] text-outline uppercase tracking-wider font-semibold">Permissions</span>
+</div>
+<ul class="flex flex-col py-1">
+<li><button type="button" class="w-full text-left px-3 py-2 text-body-sm text-on-surface hover:bg-surface-variant transition-colors">Full Access</button></li>
+<li><button type="button" class="w-full text-left px-3 py-2 text-body-sm text-on-surface hover:bg-surface-variant transition-colors">Safe Mode</button></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2 font-code-label text-code-label bg-surface-container-low px-3 py-1 rounded-md border border-outline-variant/50 min-w-0 max-w-[200px]">
+<span class="material-symbols-outlined text-[14px] text-primary flex-shrink-0">folder</span>
+                            <span class="text-on-surface-variant flex-shrink-0">Project Root:</span> <span id="current-project-root" class="text-on-surface truncate" title="./src">./src</span>
+</div>
+</div>
+<!-- Main Input -->
+<div class="relative flex items-end gap-2 bg-surface-dim border border-outline-variant rounded-xl p-2 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/50 transition-all shadow-inner">
+<!-- Skills Dropdown Menu (Activated on '/') -->
+<div data-vogi="skills-dropdown" class="absolute bottom-full left-0 mb-3 w-64 bg-surface-container-high border border-outline-variant rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.5)] overflow-hidden flex flex-col z-20 hidden">
+<div class="px-3 py-2 border-b border-outline-variant/50 flex items-center justify-between bg-surface-container/50">
+<span class="font-code-label text-[11px] text-outline uppercase tracking-wider font-semibold">Skills</span>
+<span class="text-[10px] text-outline-variant bg-surface-dim px-1.5 py-0.5 rounded border border-outline-variant/30">ESC</span>
+</div>
+<ul class="flex flex-col py-1 max-h-80 overflow-y-auto"><li class="">
+<button class="w-full flex items-center gap-3 px-3 py-2.5 text-left text-body-sm text-on-surface hover:bg-surface-variant transition-colors group focus:bg-primary/10">
+<div class="w-7 h-7 rounded bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 group-hover:border-primary/50">
+<span class="material-symbols-outlined text-[16px] text-primary">travel_explore</span>
+</div>
+<div class="flex flex-col">
+<span class="font-medium">Web Search</span>
+<span class="text-[11px] text-on-surface-variant leading-tight">Search real-time info</span>
+</div>
+</button>
+</li>
+<li class="">
+<button class="w-full flex items-center gap-3 px-3 py-2.5 text-left text-body-sm text-on-surface hover:bg-surface-variant transition-colors group focus:bg-primary/10">
+<div class="w-7 h-7 rounded bg-secondary/10 border border-secondary/20 flex items-center justify-center flex-shrink-0 group-hover:border-secondary/50">
+<span class="material-symbols-outlined text-[16px] text-secondary">image</span>
+</div>
+<div class="flex flex-col">
+<span class="font-medium">Image Generation</span>
+<span class="text-[11px] text-on-surface-variant leading-tight">Create visuals from text</span>
+</div>
+</button>
+</li>
+<li class="">
+<button class="w-full flex items-center gap-3 px-3 py-2.5 text-left text-body-sm text-on-surface hover:bg-surface-variant transition-colors group focus:bg-primary/10">
+<div class="w-7 h-7 rounded bg-tertiary/10 border border-tertiary/20 flex items-center justify-center flex-shrink-0 group-hover:border-tertiary/50">
+<span class="material-symbols-outlined text-[16px] text-tertiary">code</span>
+</div>
+<div class="flex flex-col">
+<span class="font-medium">Code Analysis</span>
+<span class="text-[11px] text-on-surface-variant leading-tight">Debug or write snippets</span>
+</div>
+</button>
+</li></ul>
+</div>
+<button data-vogi="skills-button" type="button" class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg flex-shrink-0" title="Available Skills"><span class="material-symbols-outlined">apps</span></button><button data-vogi="attach-button" type="button" class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-lg flex-shrink-0" title="Attach file">
+<span class="material-symbols-outlined">attach_file</span>
+</button>
+<input data-vogi="file-input" class="hidden" type="file" multiple/><textarea data-vogi="composer" class="w-full bg-transparent border-none text-on-surface font-body-md text-body-md resize-none focus:ring-0 placeholder:text-outline p-2 min-h-[44px] max-h-[200px] scrollbar-hide" placeholder="Reply or instruct the agent..." rows="1"></textarea>
+<div class="flex flex-col gap-2 flex-shrink-0 pb-1 pr-1">
+<button data-vogi="planning-toggle" type="button" class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container text-on-surface-variant hover:text-primary border border-outline-variant hover:border-primary/50 transition-all border-primary" title="Toggle Planning Mode">
+<span class="material-symbols-outlined text-[18px]">account_tree</span>
+</button>
+<button data-vogi="send" type="button" class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-on-primary hover:bg-primary-fixed transition-colors shadow-sm" title="Send">
+<span class="material-symbols-outlined text-[18px]">send</span>
+</button>
+<button data-vogi="stop" type="button" class="hidden w-8 h-8 flex items-center justify-center rounded-lg bg-error text-on-error hover:bg-error/80 transition-colors shadow-sm animate-pulse" title="Stop generation">
+<span class="material-symbols-outlined text-[18px]">stop</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Agent Workspace -->
+<aside class="w-[380px] bg-surface-dim flex flex-col h-full border-l border-outline-variant/50 flex-shrink-0 z-10 shadow-[-4px_0_24px_-10px_rgba(0,0,0,0.5)]">
+<header class="h-14 flex items-center px-6 border-b border-outline-variant/30">
+<h3 class="font-title-md text-title-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-[20px]">terminal</span>
+                    Agent Workspace
+                </h3>
+</header>
+<div class="flex-1 overflow-y-auto flex flex-col">
+<!-- Planning Section -->
+<div class="p-6 border-b border-outline-variant/30">
+<div class="flex items-center justify-between mb-4">
+<h4 class="font-body-md text-body-md font-semibold text-on-surface uppercase tracking-wider text-[12px]">Execution Plan</h4>
+<span data-vogi="run-badge" class="bg-surface-container px-2 py-0.5 rounded text-[10px] font-code-label text-primary border border-primary/20">Idle</span>
+</div>
+<!-- Planning Card / Bento Style -->
+<div data-vogi="execution-plan" class="bg-surface-container border border-outline-variant/50 rounded-xl p-4 flex flex-col gap-4 relative overflow-hidden">
+<!-- Decorative background glow -->
+<div class="absolute -top-10 -right-10 w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none"></div>
+<!-- Step 1: Complete -->
+<div class="flex items-start gap-3 relative z-10 opacity-60">
+<div class="w-6 h-6 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center flex-shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant">check</span>
+</div>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-medium leading-tight mb-1">Analyzing Requirements</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[13px] leading-tight">Parsed intent and validated against DB schema.</p>
+</div>
+</div>
+<!-- Step 2: Active -->
+<div class="flex items-start gap-3 relative z-10">
+<!-- Connection Line -->
+<div class="absolute left-3 top-[-20px] bottom-[-20px] w-px bg-outline-variant/30 -z-10"></div>
+<div class="w-6 h-6 rounded-full bg-primary/20 border border-primary flex items-center justify-center flex-shrink-0 mt-0.5 relative">
+<span class="w-2 h-2 rounded-full bg-primary pulse-dot"></span>
+</div>
+<div>
+<p class="font-body-md text-body-md text-primary font-medium leading-tight mb-1">Generating Boilerplate</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[13px] leading-tight">Writing Express route handler in src/routes.</p>
+</div>
+</div>
+<!-- Step 3: Pending -->
+<div class="flex items-start gap-3 relative z-10 opacity-50">
+<div class="absolute left-3 top-[-20px] bottom-[10px] w-px bg-outline-variant/30 -z-10"></div>
+<div class="w-6 h-6 rounded-full bg-surface-dim border border-outline-variant flex items-center justify-center flex-shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[14px] text-outline">hourglass_empty</span>
+</div>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-medium leading-tight mb-1">Testing Endpoints</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[13px] leading-tight">Awaiting code generation completion.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Terminal Section -->
+<div class="flex-1 flex flex-col min-h-[300px] bg-[#050505] relative group">
+<div class="flex items-center justify-between px-4 py-2 border-b border-white/10 bg-[#0e1116]">
+<span class="font-code-label text-code-label text-outline-variant text-[11px] uppercase tracking-widest">Process Output</span>
+<button id="copy-output-btn" class="text-on-surface-variant hover:text-white transition-colors opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-white/5" title="Copy Output">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+</button>
+</div>
+<div data-vogi="process-output" class="flex-1 p-4 font-code-label text-code-label text-[13px] leading-relaxed overflow-y-auto font-medium">
+<div class="text-outline-variant mb-2">~ vogi-agent start --target ./src/routes</div>
+<div class="text-primary mb-1">[INFO] Initializing workspace context...</div>
+<div class="text-on-surface mb-1">[INFO] Parsing AST for existing routes in /src/routes</div>
+<div class="text-on-surface mb-1">[INFO] Found 12 endpoints. Validating dependencies.</div>
+<div class="text-primary mb-4">[INFO] Context loaded. Ready for generation.</div>
+<div class="text-outline-variant mb-1">~ writing file: src/routes/profile.js</div>
+<div class="text-[#4ade80] mb-1">+ const express = require('express');</div>
+<div class="text-[#4ade80] mb-1">+ const router = express.Router();</div>
+<div class="text-[#4ade80] mb-1">+ const db = require('../db');</div>
+<div class="text-outline-variant mt-2 mb-1">... generating controller logic ...</div>
+<div class="flex items-center gap-2 mt-4 text-primary opacity-80">
+<span class="w-1.5 h-3 bg-primary animate-pulse"></span>
+<span class="">Awaiting stream...</span>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</main>
+<div data-vogi="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden" id="settings-modal">
+<div class="bg-surface-container-high w-full max-w-2xl rounded-2xl border border-outline-variant shadow-2xl overflow-hidden flex flex-col">
+<div class="p-6 border-b border-outline-variant/50 flex items-center justify-between">
+<h2 class="text-headline-lg font-bold text-on-surface">Settings</h2>
+<button class="text-on-surface-variant hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto p-6 space-y-8">
+<section>
+<h3 class="text-title-md font-semibold text-primary mb-4">User Profile</h3>
+<div class="flex items-center gap-6 mb-4">
+<div class="relative">
+<div class="w-20 h-20 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-[40px] text-on-surface-variant">person</span>
+</div>
+<button class="absolute bottom-0 right-0 p-1.5 bg-primary text-on-primary rounded-full shadow-lg">
+<span class="material-symbols-outlined text-[16px]">edit</span>
+</button>
+</div>
+<div class="flex-1 space-y-4">
+<div class="flex flex-col gap-1.5">
+<label class="text-code-label text-outline-variant">Name</label>
+<input class="bg-surface-dim border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus:border-primary outline-none" type="text" value="John Doe"/>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-code-label text-outline-variant">Email</label>
+<input class="bg-surface-dim border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus:border-primary outline-none" type="email" value="john@example.com"/>
+</div>
+</div>
+</div>
+</section>
+<section>
+<h3 class="text-title-md font-semibold text-primary mb-4">API Connections</h3>
+<div class="space-y-4">
+<div class="p-4 rounded-xl border border-outline-variant/50 bg-surface-dim">
+<div class="flex items-center justify-between mb-3">
+<span class="font-medium">Local Model (Ollama/LM Studio)</span>
+<span class="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] font-bold">CONNECTED</span>
+</div>
+<div class="flex gap-2">
+<input class="flex-1 bg-surface-container border border-outline-variant rounded px-3 py-1.5 text-body-sm outline-none" placeholder="Host (e.g. 127.0.0.1)" type="text"/>
+<input class="w-24 bg-surface-container border border-outline-variant rounded px-3 py-1.5 text-body-sm outline-none" placeholder="Port" type="text"/>
+</div>
+</div>
+<div class="p-4 rounded-xl border border-outline-variant/50 bg-surface-dim">
+<div class="flex items-center justify-between mb-3">
+<span class="font-medium">OpenAI API</span>
+</div>
+<input class="w-full bg-surface-container border border-outline-variant rounded px-3 py-1.5 text-body-sm outline-none" placeholder="sk-..." type="password"/>
+</div>
+</div>
+</section>
+</div>
+<div class="p-6 border-t border-outline-variant/50 bg-surface-container flex justify-end gap-3">
+<button class="px-4 py-2 rounded-lg text-on-surface-variant hover:text-on-surface font-medium">Cancel</button>
+<button class="px-6 py-2 rounded-lg bg-primary text-on-primary font-bold">Save Changes</button>
+</div>
+</div>
+</div>
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden" id="gemma-start-modal">
+<div class="bg-surface-container-high w-full max-w-md rounded-2xl border border-outline-variant shadow-2xl overflow-hidden flex flex-col p-6 space-y-6">
+<div class="flex items-center justify-between border-b border-outline-variant/30 pb-3">
+<h3 class="text-title-md font-bold text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-[24px]">rocket_launch</span>
+Start Gemma Model
+</h3>
+<button class="text-on-surface-variant hover:text-on-surface transition-colors" id="gemma-close-btn">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="text-body-md text-on-surface leading-relaxed">
+Would you like to start the Gemma model (<code>gemma3:1b</code>) in the background? This will launch Ollama (if not already running) and pull/warm up the model.
+</div>
+<div class="flex justify-end gap-3 pt-3 border-t border-outline-variant/30">
+<button class="px-4 py-2 rounded-lg text-on-surface-variant hover:text-on-surface font-medium" id="gemma-cancel-btn">Cancel</button>
+<button class="px-6 py-2 rounded-lg bg-primary text-on-primary font-bold hover:bg-primary-fixed transition-colors flex items-center gap-2" id="gemma-start-btn">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+Start Model
+</button>
+</div>
+</div>
+</div>
+<script src="/assets/raw-platform.js" type="module"></script>
+</body></html>
