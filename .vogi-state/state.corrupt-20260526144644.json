@@ -1,0 +1,47 @@
+{
+  "projects": {},
+  "chats": {},
+  "memories": {},
+  "skills": {
+    "code_analysis": {
+      "name": "code_analysis",
+      "trigger": "/code",
+      "description": "Search, read, explain, edit, and test local code.",
+      "instructions": "Search first, read relevant files, then make small focused edits.",
+      "tools": [
+        "find_files",
+        "search_text",
+        "read_file",
+        "write_file",
+        "run_shell"
+      ],
+      "examples": [
+        "/code find where projects are stored"
+      ],
+      "builtin": true,
+      "createdAt": "2026-05-26T09:16:44.973819+00:00",
+      "updatedAt": "2026-05-26T09:16:44.973819+00:00"
+    },
+    "research_agent": {
+      "name": "research_agent",
+      "trigger": "/web",
+      "description": "Search, browse, and synthesize current web information from pages and documents.",
+      "instructions": "",
+      "tools": [
+        "web_search",
+        "browse_url",
+        "browse_jobs"
+      ],
+      "examples": [],
+      "builtin": true,
+      "createdAt": "2026-05-26T09:16:44.975820+00:00",
+      "updatedAt": "2026-05-26T09:16:44.975820+00:00"
+    }
+  },
+  "uploads": {}
+}.975820+00:00",
+      "updatedAt": "2026-05-26T09:16:44.975820+00:00"
+    }
+  },
+  "uploads": {}
+}

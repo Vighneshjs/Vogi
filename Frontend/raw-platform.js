@@ -12,11 +12,14 @@ const dom = {
   searchInput: q("search-input"),
   projectList: q("project-list"),
   sidebarSkills: q("sidebar-skills"),
+  sidebarSkillsToggle: q("sidebar-skills-toggle"),
+  sidebarSkillsIcon: q("sidebar-skills-icon"),
   chatScroll: q("chat-scroll"),
   skillsDropdown: q("skills-dropdown"),
   skillsButton: q("skills-button"),
   attachButton: q("attach-button"),
   fileInput: q("file-input"),
+  attachmentChips: q("attachment-chips"),
   composer: q("composer"),
   planningToggle: q("planning-toggle"),
   send: q("send"),
@@ -24,7 +27,11 @@ const dom = {
   runBadge: q("run-badge"),
   executionPlan: q("execution-plan"),
   processOutput: q("process-output"),
-  settingsModal: q("settings-modal")
+  settingsModal: q("settings-modal"),
+  browserSessionBadge: q("browser-session-badge"),
+  browserSessionMessage: q("browser-session-message"),
+  browserSessionStart: q("browser-session-start"),
+  browserSessionClose: q("browser-session-close")
 };
 
 const state = {
@@ -35,7 +42,12 @@ const state = {
   skills: [],
   activeProjectId: null,
   activeChatId: null,
-  planningMode: true,
+  selectedSkillIndex: -1,
+  filteredSkills: [],
+  planningMode: false,
+  permissionMode: "full",
+  sidebarSkillsOpen: false,
+  pendingAttachments: [],
   sending: false,
   controller: null,
   collapsedProjects: new Set()
@@ -43,6 +55,178 @@ const state = {
 
 function text(value) {
   return String(value ?? "");
+}
+
+function escapeHtml(value) {
+  return text(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function inlineMarkdown(value) {
+  let html = escapeHtml(value);
+  html = html.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-surface-container-high border border-outline-variant text-[0.9em] font-code-label text-primary">$1</code>');
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold text-on-surface">$1</strong>');
+  html = html.replace(/(^|\s)([\w.-]+\/(?:[\w .@()+-]+\/)*[\w .@()+-]+\.[A-Za-z0-9]{1,8})(?=$|[\s,.;:)])/g, '$1<code class="px-1.5 py-0.5 rounded bg-surface-container-high border border-outline-variant text-[0.9em] font-code-label text-tertiary">$2</code>');
+  return html;
+}
+
+function looksLikeCodeLine(line, language = "text") {
+  const stripped = text(line).trim();
+  if (!stripped) return true;
+  if (/^(\.|#|\{|}|<|<\/|const |let |var |function |class |import |export |def |async def |return |if |for |while |\$|npm |python |uvicorn |git |@)/.test(stripped)) return true;
+  if (/[;{}]|=>|==|===|&&|\|\|/.test(stripped)) return true;
+  if (language === "css" && /^[a-zA-Z-]+\s*:\s*[^;]+;?\s*(\/\*.*\*\/)?$/.test(stripped)) return true;
+  if (["json", "javascript", "typescript"].includes(language) && /^["']?[\w-]+["']?\s*:/.test(stripped)) return true;
+  return false;
+}
+
+function fenceLooseCodeSections(content) {
+  const source = text(content);
+  if (source.includes("```")) return source;
+  const labels = {
+    css: "css",
+    html: "html",
+    javascript: "javascript",
+    js: "javascript",
+    typescript: "typescript",
+    ts: "typescript",
+    python: "python",
+    powershell: "powershell",
+    shell: "bash",
+    bash: "bash",
+    json: "json"
+  };
+  const lines = source.split("\n");
+  const output = [];
+  let index = 0;
+  while (index < lines.length) {
+    const labelMatch = lines[index].match(/^\s*(CSS|HTML|JavaScript|JS|TypeScript|TS|Python|PowerShell|Shell|Bash|JSON)\s*:\s*$/i);
+    if (!labelMatch) {
+      output.push(lines[index]);
+      index += 1;
+      continue;
+    }
+    const language = labels[labelMatch[1].toLowerCase()];
+    let probe = index + 1;
+    while (probe < lines.length && !lines[probe].trim()) probe += 1;
+    if (probe >= lines.length || !looksLikeCodeLine(lines[probe], language)) {
+      output.push(lines[index]);
+      index += 1;
+      continue;
+    }
+    output.push(lines[index], `\`\`\`${language}`);
+    index += 1;
+    let collected = false;
+    let braceBalance = 0;
+    while (index < lines.length) {
+      const line = lines[index];
+      const stripped = line.trim();
+      const nextLabel = /^\s*(CSS|HTML|JavaScript|JS|TypeScript|TS|Python|PowerShell|Shell|Bash|JSON|Options|Result|Output|Explanation)\s*:\s*$/i.test(line);
+      const numberedSection = /^\s*\d+[.)]\s+[A-Z][^{};]*$/.test(line);
+      if (collected && stripped && (nextLabel || numberedSection) && braceBalance <= 0 && !looksLikeCodeLine(line, language)) break;
+      if (collected && !stripped) {
+        const nextNonBlank = lines.slice(index + 1).find((candidate) => candidate.trim())?.trim() || "";
+        if (nextNonBlank && /^(\d+[.)]\s+)?[A-Z][^{};]*:?$/.test(nextNonBlank) && braceBalance <= 0 && !looksLikeCodeLine(nextNonBlank, language)) break;
+      }
+      output.push(line);
+      if (stripped) {
+        collected = true;
+        braceBalance += (line.match(/{/g) || []).length - (line.match(/}/g) || []).length;
+      }
+      if (language === "css" && collected && stripped === "}" && braceBalance <= 0) {
+        index += 1;
+        break;
+      }
+      index += 1;
+    }
+    output.push("```");
+  }
+  return output.join("\n");
+}
+
+function renderMarkdown(content) {
+  const fragment = document.createDocumentFragment();
+  const source = fenceLooseCodeSections(content).replaceAll("\r\n", "\n").replaceAll("\u2014", "-");
+  const parts = source.split(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g);
+
+  function appendRichText(block) {
+    const lines = block.split("\n");
+    let list = null;
+    const flushList = () => {
+      if (list) {
+        fragment.append(list);
+        list = null;
+      }
+    };
+    for (const rawLine of lines) {
+      const line = rawLine.trimEnd();
+      if (!line.trim()) {
+        flushList();
+        continue;
+      }
+      const heading = line.match(/^(#{1,3})\s+(.+)$/);
+      if (heading) {
+        flushList();
+        const level = Math.min(3, heading[1].length);
+        const node = document.createElement(level === 1 ? "h2" : level === 2 ? "h3" : "h4");
+        node.className = level === 1
+          ? "mt-2 mb-2 text-[18px] font-semibold text-on-surface"
+          : "mt-3 mb-1 text-[15px] font-semibold text-on-surface";
+        node.innerHTML = inlineMarkdown(heading[2]);
+        fragment.append(node);
+        continue;
+      }
+      const bullet = line.match(/^\s*[-*]\s+(.+)$/);
+      const numbered = line.match(/^\s*\d+[.)]\s+(.+)$/);
+      if (bullet || numbered) {
+        if (!list) {
+          list = document.createElement(numbered ? "ol" : "ul");
+          list.className = numbered ? "list-decimal pl-5 my-2 space-y-1" : "list-disc pl-5 my-2 space-y-1";
+        }
+        const item = document.createElement("li");
+        item.className = "pl-1 leading-relaxed";
+        item.innerHTML = inlineMarkdown((bullet || numbered)[1]);
+        list.append(item);
+        continue;
+      }
+      flushList();
+      const p = document.createElement("p");
+      p.className = "leading-relaxed my-2";
+      p.innerHTML = inlineMarkdown(line);
+      fragment.append(p);
+    }
+    flushList();
+  }
+
+  for (let index = 0; index < parts.length; index += 3) {
+    appendRichText(parts[index] || "");
+    if (index + 2 < parts.length) {
+      const language = parts[index + 1] || "text";
+      const code = parts[index + 2] || "";
+      const wrapper = document.createElement("div");
+      wrapper.className = "my-3 overflow-hidden rounded-lg border border-outline-variant bg-[#111318]";
+      wrapper.innerHTML = `
+        <div class="flex items-center justify-between px-3 py-2 border-b border-outline-variant/70 bg-surface-container-high">
+          <span class="text-[11px] uppercase tracking-wide text-on-surface-variant font-code-label"></span>
+          <button type="button" class="copy-code text-[11px] text-on-surface-variant hover:text-on-surface">Copy</button>
+        </div>
+        <pre class="overflow-x-auto p-3 text-[12px] leading-relaxed text-[#e5e7eb] font-code-label"><code></code></pre>
+      `;
+      wrapper.querySelector("span").textContent = language;
+      wrapper.querySelector("code").textContent = code.trim();
+      wrapper.querySelector(".copy-code").addEventListener("click", async (event) => {
+        await navigator.clipboard?.writeText(code.trim()).catch(() => {});
+        event.currentTarget.textContent = "Copied";
+        setTimeout(() => { event.currentTarget.textContent = "Copy"; }, 1200);
+      });
+      fragment.append(wrapper);
+    }
+  }
+  return fragment;
 }
 
 function shortTime(value) {
@@ -61,6 +245,156 @@ function icon(name, classes = "text-[16px]") {
   span.className = `material-symbols-outlined ${classes}`;
   span.textContent = name;
   return span;
+}
+
+function displayPath(path) {
+  const value = text(path).replaceAll("\\", "/");
+  const marker = "vogi_agent/";
+  const markerIndex = value.toLowerCase().indexOf(marker);
+  return markerIndex >= 0 ? value.slice(markerIndex) : value;
+}
+
+function fileName(path) {
+  return displayPath(path).split("/").filter(Boolean).pop() || displayPath(path);
+}
+
+function changesFromTrace(trace = []) {
+  const changes = new Map();
+  for (const entry of trace) {
+    const action = entry.action ?? {};
+    if (entry.type !== "tool" || !["write_file", "append_file"].includes(action.tool)) continue;
+    const observation = entry.observation ?? {};
+    if (observation.error) continue;
+    const path = observation.written ?? observation.path ?? action.args?.path;
+    if (!path) continue;
+    const key = text(path);
+    const current = changes.get(key) ?? { path: key, additions: 0, deletions: 0, operations: 0 };
+    current.additions += Number(observation.additions ?? 0);
+    current.deletions += Number(observation.deletions ?? 0);
+    current.operations += 1;
+    changes.set(key, current);
+  }
+  return Array.from(changes.values());
+}
+
+function normalizeChanges(message = {}) {
+  if (Array.isArray(message.changes) && message.changes.length) return message.changes;
+  if (Array.isArray(message.files) && message.files.length) {
+    return message.files.map((item) => typeof item === "string" ? { path: item, additions: 0, deletions: 0 } : item);
+  }
+  return [];
+}
+
+async function undoLastChange(button) {
+  if (button.disabled) return;
+  button.disabled = true;
+  button.innerHTML = `<span class="material-symbols-outlined text-[14px] animate-spin">sync</span> Undoing`;
+  try {
+    const res = await fetch("/api/agent/undo", { method: "POST" });
+    const data = await res.json();
+    if (data.undone) {
+      button.innerHTML = `<span class="material-symbols-outlined text-[14px]">check</span> Undone`;
+      button.classList.add("text-[#4ade80]");
+    } else {
+      button.innerHTML = `<span class="material-symbols-outlined text-[14px]">error</span> ${data.message || "Failed"}`;
+      button.classList.add("text-error");
+    }
+  } catch {
+    button.innerHTML = `<span class="material-symbols-outlined text-[14px]">error</span> Error`;
+    button.classList.add("text-error");
+  }
+}
+
+function renderChangeSummaryCard(changes, { live = false } = {}) {
+  if (!changes.length) return null;
+  const totalAdditions = changes.reduce((sum, item) => sum + Number(item.additions ?? 0), 0);
+  const totalDeletions = changes.reduce((sum, item) => sum + Number(item.deletions ?? 0), 0);
+  const card = document.createElement("div");
+  card.className = live
+    ? "mt-3 w-full max-w-xl rounded-lg border border-outline-variant bg-surface-container-low overflow-hidden shadow-sm"
+    : "mt-4 w-full max-w-xl rounded-lg border border-outline-variant bg-surface-container-low overflow-hidden shadow-sm";
+  card.dataset.vogi = live ? "live-change-summary" : "change-summary";
+  card.innerHTML = `
+    <div class="flex items-center justify-between gap-3 px-4 py-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center border border-outline-variant flex-shrink-0">
+          <span class="material-symbols-outlined text-[20px] text-on-surface">library_add_check</span>
+        </div>
+        <div class="min-w-0">
+          <div class="font-title-md text-title-md text-on-surface text-[15px]">${live ? "Editing files now" : `Edited ${changes.length} ${changes.length === 1 ? "file" : "files"}`}</div>
+          <div class="font-code-label text-code-label text-[12px]">
+            <span class="text-[#4ade80]">+${totalAdditions}</span>
+            <span class="text-error ml-1">-${totalDeletions}</span>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <button type="button" class="change-undo inline-flex items-center gap-1 px-2 py-1 rounded-md text-[12px] text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high">
+          <span>${live ? "Undo" : "Undo"}</span>
+          <span class="material-symbols-outlined text-[14px]">undo</span>
+        </button>
+        <button type="button" class="change-review px-3 py-1.5 rounded-lg border border-outline-variant bg-surface-container-high text-[13px] text-on-surface hover:bg-surface-variant">${live ? "Review" : "Review here"}</button>
+      </div>
+    </div>
+    <div class="change-list border-t border-outline-variant/50"></div>
+  `;
+  const list = card.querySelector(".change-list");
+  const hiddenCount = Math.max(0, changes.length - 3);
+  changes.slice(0, 3).forEach((item) => {
+    const row = document.createElement("div");
+    row.className = "flex items-center justify-between gap-3 px-4 py-2.5 text-[13px] text-on-surface hover:bg-surface-container-high/60";
+    row.innerHTML = `
+      <span class="font-code-label truncate"></span>
+      <span class="font-code-label flex-shrink-0">
+        <span class="text-[#4ade80]">+${Number(item.additions ?? 0)}</span>
+        <span class="text-error ml-1">-${Number(item.deletions ?? 0)}</span>
+        <span class="material-symbols-outlined text-[16px] align-middle text-on-surface-variant ml-1">expand_more</span>
+      </span>
+    `;
+    row.querySelector(".truncate").textContent = displayPath(item.path);
+    row.title = text(item.path);
+    list.append(row);
+  });
+  if (hiddenCount) {
+    const more = document.createElement("button");
+    more.type = "button";
+    more.className = "w-full flex items-center gap-1 px-4 py-2.5 text-[13px] text-on-surface hover:bg-surface-container-high border-t border-outline-variant/40";
+    more.innerHTML = `Show ${hiddenCount} more ${hiddenCount === 1 ? "file" : "files"} <span class="material-symbols-outlined text-[16px]">expand_more</span>`;
+    more.addEventListener("click", () => {
+      const expanded = more.dataset.expanded === "true";
+      more.dataset.expanded = String(!expanded);
+      Array.from(list.querySelectorAll("[data-extra-change]")).forEach((node) => node.remove());
+      if (!expanded) {
+        changes.slice(3).forEach((item) => {
+          const row = document.createElement("div");
+          row.dataset.extraChange = "true";
+          row.className = "flex items-center justify-between gap-3 px-4 py-2.5 text-[13px] text-on-surface hover:bg-surface-container-high/60";
+          row.innerHTML = `<span class="font-code-label truncate"></span><span class="font-code-label flex-shrink-0"><span class="text-[#4ade80]">+${Number(item.additions ?? 0)}</span><span class="text-error ml-1">-${Number(item.deletions ?? 0)}</span></span>`;
+          row.querySelector(".truncate").textContent = displayPath(item.path);
+          list.append(row);
+        });
+        more.innerHTML = `Hide extra files <span class="material-symbols-outlined text-[16px]">expand_less</span>`;
+      } else {
+        more.innerHTML = `Show ${hiddenCount} more ${hiddenCount === 1 ? "file" : "files"} <span class="material-symbols-outlined text-[16px]">expand_more</span>`;
+      }
+    });
+    card.append(more);
+  }
+  card.querySelector(".change-undo").addEventListener("click", (event) => undoLastChange(event.currentTarget));
+  card.querySelector(".change-review").addEventListener("click", () => {
+    dom.processOutput?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    dom.processOutput?.classList.add("ring-1", "ring-primary/60");
+    setTimeout(() => dom.processOutput?.classList.remove("ring-1", "ring-primary/60"), 1200);
+  });
+  return card;
+}
+
+function updateLiveChangeSummary() {
+  const holder = document.getElementById("live-change-summary");
+  if (!holder) return;
+  holder.innerHTML = "";
+  const card = renderChangeSummaryCard(changesFromTrace(activeChat()?.trace ?? []), { live: true });
+  if (card) holder.append(card);
 }
 
 function activeProject() {
@@ -114,53 +448,32 @@ function messageNode(message) {
       <div class="flex flex-col items-start gap-2 w-full">
         <div class="flex items-center gap-2 mb-1">
           <span class="font-title-md text-title-md text-on-surface text-[14px]">Vogi</span>
-          <span class="font-code-label text-code-label text-on-surface-variant text-[12px]">local</span>
         </div>
         <div class="text-on-surface font-body-md text-body-md leading-relaxed space-y-4 w-full message-content">
           <p class="whitespace-pre-wrap"></p>
         </div>
       </div>`;
   }
-  wrap.querySelector("p").textContent = text(message.content);
-  if (role === "assistant" && message.files && message.files.length > 0) {
-      const filesDiv = document.createElement("div");
-      filesDiv.className = "mt-4 bg-surface-container-low border border-outline-variant rounded-lg p-3 w-full max-w-md";
-      filesDiv.innerHTML = `
-          <div class="flex items-center justify-between mb-2">
-              <span class="text-[12px] font-code-label uppercase text-on-surface-variant font-semibold">Files Modified (${message.files.length})</span>
-              <button class="undo-change-btn text-[12px] flex items-center gap-1 text-primary hover:text-primary-fixed transition-colors bg-primary/10 px-2 py-1 rounded">
-                  <span class="material-symbols-outlined text-[14px]">undo</span> Undo
-              </button>
-          </div>
-          <ul class="flex flex-col gap-1.5">
-              ${message.files.map(f => `<li class="text-[13px] font-code-label text-on-surface truncate" title="${f}"><span class="text-tertiary">~</span> ${f.split(/[\\\\/]/).pop()}</li>`).join("")}
-          </ul>
-      `;
-      wrap.querySelector(".message-content").appendChild(filesDiv);
-      const undoBtn = filesDiv.querySelector(".undo-change-btn");
-      undoBtn.addEventListener("click", async () => {
-          if (undoBtn.disabled) return;
-          undoBtn.disabled = true;
-          undoBtn.innerHTML = `<span class="material-symbols-outlined text-[14px] animate-spin">sync</span> Undoing...`;
-          try {
-              const res = await fetch("/api/agent/undo", { method: "POST" });
-              const data = await res.json();
-              if (data.undone) {
-                  undoBtn.innerHTML = `<span class="material-symbols-outlined text-[14px]">check</span> Undone`;
-                  undoBtn.classList.replace("text-primary", "text-[#4ade80]");
-                  undoBtn.classList.replace("bg-primary/10", "bg-[#4ade80]/10");
-                  undoBtn.classList.remove("hover:text-primary-fixed");
-              } else {
-                  undoBtn.innerHTML = `<span class="material-symbols-outlined text-[14px]">error</span> ${data.message || "Failed"}`;
-                  undoBtn.classList.replace("text-primary", "text-error");
-                  undoBtn.classList.replace("bg-primary/10", "bg-error/10");
-              }
-          } catch (e) {
-              undoBtn.innerHTML = `<span class="material-symbols-outlined text-[14px]">error</span> Error`;
-              undoBtn.classList.replace("text-primary", "text-error");
-              undoBtn.classList.replace("bg-primary/10", "bg-error/10");
-          }
-      });
+  if (role === "user") {
+    wrap.querySelector("p").textContent = text(message.content);
+  } else {
+    const content = wrap.querySelector(".message-content");
+    content.innerHTML = "";
+    content.append(renderMarkdown(message.content));
+  }
+  if (role === "user" && Array.isArray(message.attachments) && message.attachments.length) {
+    const chips = document.createElement("div");
+    chips.className = "flex flex-wrap justify-end gap-1.5 mt-2";
+    chips.innerHTML = message.attachments.map((item) => `
+      <span class="inline-flex items-center gap-1 rounded-md border border-outline-variant bg-surface-container-low px-2 py-1 text-[11px] text-on-surface-variant" title="${text(item.filename)}">
+        <span class="material-symbols-outlined text-[13px]">attach_file</span>${text(item.filename)}
+      </span>
+    `).join("");
+    wrap.querySelector(".flex.flex-col.items-end")?.append(chips);
+  }
+  if (role === "assistant") {
+    const changeCard = renderChangeSummaryCard(normalizeChanges(message));
+    if (changeCard) wrap.querySelector(".message-content").appendChild(changeCard);
   }
   return wrap;
 }
@@ -189,6 +502,7 @@ function renderMessages() {
         </div>
         <div class="hidden flex-col gap-1 w-full max-w-lg mt-1 mb-2 p-3 bg-surface-container-low border border-outline-variant/60 shadow-sm rounded-lg max-h-[300px] overflow-y-auto" id="thinking-steps-container">
         </div>
+        <div id="live-change-summary" class="w-full"></div>
         <div class="text-on-surface font-body-md text-body-md leading-relaxed space-y-4 w-full">
           <div class="flex items-center gap-1.5 mt-1.5 opacity-60">
             <span class="w-2 h-2 bg-on-surface rounded-full animate-bounce" style="animation-delay: 0ms"></span>
@@ -327,11 +641,10 @@ function skillIcon(skill) {
   return "neurology";
 }
 
-function renderSkills(skills = state.skills) {
+function renderSkills() {
+  // Sidebar always shows all skills
   dom.sidebarSkills.innerHTML = "";
-  const menuList = dom.skillsDropdown.querySelector("ul");
-  menuList.innerHTML = "";
-  for (const skill of skills) {
+  state.skills.forEach((skill) => {
     const li = document.createElement("li");
     const link = document.createElement("a");
     link.className = "flex items-center gap-2 py-1.5 text-body-sm text-on-surface-variant hover:text-primary transition-colors";
@@ -342,16 +655,22 @@ function renderSkills(skills = state.skills) {
       event.preventDefault();
       dom.composer.value = `${skill.trigger || `/${skill.name}`} `;
       dom.composer.focus();
-      toggleSkills(true);
+      toggleSkills(false);
     });
     li.append(link);
     dom.sidebarSkills.append(li);
+  });
 
+  // Dropdown shows filtered skills with keyboard navigation support
+  const menuList = dom.skillsDropdown.querySelector("ul");
+  menuList.innerHTML = "";
+  state.filteredSkills.forEach((skill, index) => {
     const button = document.createElement("button");
-    button.className = "w-full flex items-center gap-3 px-3 py-2.5 text-left text-body-sm text-on-surface hover:bg-surface-variant transition-colors group focus:bg-primary/10";
+    const isSelected = index === state.selectedSkillIndex;
+    button.className = `w-full flex items-center gap-3 px-3 py-2.5 text-left text-body-sm text-on-surface transition-colors group focus:bg-primary/10 ${isSelected ? "bg-primary/10 border-l-2 border-primary" : "hover:bg-surface-variant"}`;
     button.type = "button";
     button.innerHTML = `
-      <div class="w-7 h-7 rounded bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 group-hover:border-primary/50"></div>
+      <div class="w-7 h-7 rounded bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 group-hover:border-primary/50 ${isSelected ? "border-primary/50" : ""}"></div>
       <div class="flex flex-col">
         <span class="font-medium"></span>
         <span class="text-[11px] text-on-surface-variant leading-tight"></span>
@@ -364,8 +683,11 @@ function renderSkills(skills = state.skills) {
       dom.composer.focus();
       toggleSkills(false);
     });
+    if (isSelected) {
+      button.scrollIntoView({ block: "nearest" });
+    }
     menuList.append(button);
-  }
+  });
 }
 
 function renderPlan(plan = activeChat()?.plan ?? []) {
@@ -418,6 +740,15 @@ function traceLine(entry) {
     if (tool === "run_shell") {
       const out = ((obs?.stdout ?? "") + (obs?.stderr ?? "")).trim().slice(0, 80);
       return `💻 shell (exit ${obs?.exitCode ?? "?"}) — ${out || args.command?.slice(0, 60) || ""}`;
+    }
+    if (tool === "install_package") {
+      return `install - ${args.package ?? ""} (${obs?.installed ? "installed" : obs?.requiresElevation ? "elevation required" : "failed"})`;
+    }
+    if (tool === "database_query") {
+      return `database query - ${obs?.rowCount ?? "?"} rows`;
+    }
+    if (tool === "http_request") {
+      return `http ${args.method ?? "GET"} - ${obs?.statusCode ?? "?"} ${args.url ?? ""}`;
     }
     if (tool === "browse_url") {
       const url = (args.url ?? "").replace(/^https?:\/\//, "").slice(0, 60);
@@ -475,9 +806,11 @@ function renderLogs(trace = activeChat()?.trace ?? []) {
 function renderAll() {
   renderProjects();
   renderSkills();
+  renderAttachmentChips();
   renderMessages();
   renderPlan();
   renderLogs();
+  applyPlanningVisibility();
   const rootSpan = document.getElementById("current-project-root");
   if (rootSpan && activeProject()) {
       rootSpan.textContent = activeProject().rootPath || "./src";
@@ -490,13 +823,62 @@ function toggleSkills(force) {
   dom.skillsDropdown.classList.toggle("hidden", !shouldShow);
 }
 
+function toggleSidebarSkills(force) {
+  state.sidebarSkillsOpen = force ?? !state.sidebarSkillsOpen;
+  dom.sidebarSkills?.classList.toggle("hidden", !state.sidebarSkillsOpen);
+  if (dom.sidebarSkillsIcon) {
+    dom.sidebarSkillsIcon.style.transform = state.sidebarSkillsOpen ? "rotate(180deg)" : "";
+  }
+}
+
+function renderAttachmentChips() {
+  if (!dom.attachmentChips) return;
+  dom.attachmentChips.innerHTML = "";
+  dom.attachmentChips.classList.toggle("hidden", state.pendingAttachments.length === 0);
+  for (const item of state.pendingAttachments) {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "inline-flex items-center gap-1.5 rounded-lg border border-outline-variant bg-surface-container-low px-2.5 py-1.5 text-[12px] text-on-surface-variant hover:text-on-surface";
+    chip.title = `Remove ${item.filename}`;
+    chip.innerHTML = `<span class="material-symbols-outlined text-[15px]">attach_file</span><span class="max-w-[180px] truncate"></span><span class="material-symbols-outlined text-[14px]">close</span>`;
+    chip.querySelector(".truncate").textContent = item.filename;
+    chip.addEventListener("click", () => {
+      state.pendingAttachments = state.pendingAttachments.filter((attachment) => attachment.id !== item.id);
+      renderAttachmentChips();
+    });
+    dom.attachmentChips.append(chip);
+  }
+}
+
+function historyForRequest(chat) {
+  return (chat.messages ?? []).slice(0, -1).map((message) => {
+    const { attachments, ...rest } = message;
+    return rest;
+  });
+}
+
+function applyPlanningVisibility() {
+  const planSection = dom.executionPlan?.closest(".p-6");
+  if (planSection) planSection.classList.toggle("hidden", !state.planningMode);
+  dom.planningToggle?.classList.toggle("border-primary", state.planningMode);
+  dom.planningToggle?.classList.toggle("text-primary", state.planningMode);
+  dom.planningToggle?.setAttribute("aria-pressed", String(state.planningMode));
+}
+
 function updateSkillMenuFromInput() {
   const value = dom.composer.value.trimStart();
   if (value.startsWith("/") && !value.includes(" ")) {
     const query = value.slice(1).toLowerCase();
-    renderSkills(state.skills.filter((skill) => skill.name.toLowerCase().includes(query) || (skill.trigger || "").toLowerCase().includes(query)));
+    state.filteredSkills = state.skills.filter((skill) =>
+      skill.name.toLowerCase().includes(query) ||
+      (skill.trigger || "").toLowerCase().includes(query)
+    );
+    state.selectedSkillIndex = state.filteredSkills.length > 0 ? 0 : -1;
+    renderSkills();
     toggleSkills(true);
   } else {
+    state.filteredSkills = [];
+    state.selectedSkillIndex = -1;
     toggleSkills(false);
   }
 }
@@ -506,6 +888,7 @@ async function loadBootstrap() {
   state.bootstrap = await response.json();
   state.projects = state.bootstrap.projects ?? [];
   state.skills = state.bootstrap.skills ?? [];
+  state.filteredSkills = state.skills;
   state.activeProjectId = state.bootstrap.activeProjectId ?? state.projects[0]?.id;
   state.chats = state.bootstrap.chats ?? [];
   state.memories = state.bootstrap.memories ?? [];
@@ -520,6 +903,8 @@ async function loadBootstrap() {
     chat.messages.push({ role: "assistant", content: state.bootstrap.app.welcome });
   }
   renderAll();
+  toggleSidebarSkills(false);
+  applyPlanningVisibility();
 }
 
 async function selectProject(projectId) {
@@ -542,12 +927,13 @@ async function selectChat(chatId) {
   renderAll();
 }
 
-async function createProject() {
-  const name = `Project ${state.projects.length + 1}`;
+async function registerSelectedProject(path) {
+  const normalizedPath = text(path).replace(/[\\/]+$/, "");
+  const name = normalizedPath.split(/[\\/]/).pop() || `Project ${state.projects.length + 1}`;
   const response = await fetch("/api/projects", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, rootPath: state.bootstrap.projectRoot })
+    body: JSON.stringify({ name, rootPath: path })
   });
   const data = await response.json();
   state.projects.unshift(data.project);
@@ -556,6 +942,21 @@ async function createProject() {
   state.activeChatId = data.chat.id;
   data.chat.messages = [{ role: "assistant", content: state.bootstrap.app.welcome }];
   renderAll();
+}
+
+async function selectProjectFolder(mode) {
+  const res = await fetch("/api/select-folder", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode, startPath: activeProject()?.rootPath || state.bootstrap?.projectRoot })
+  });
+  const data = await res.json();
+  if (data.cancelled || !data.path) return;
+  await registerSelectedProject(data.path);
+}
+
+async function createProject() {
+  await selectProjectFolder("create");
 }
 
 async function createChat(title = "New chat", render = true) {
@@ -579,13 +980,14 @@ async function searchAll(query) {
   const response = await fetch("/api/search", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query })
+    body: JSON.stringify({ query, projectId: state.activeProjectId })
   });
   const data = await response.json();
-  state.projects = data.projects?.length ? data.projects : state.projects;
+  if (data.projects?.length) state.projects = data.projects;
   state.chats = data.chats ?? state.chats;
+  if (data.skills?.length) state.skills = data.skills;
   renderProjects();
-  renderSkills(data.skills?.length ? data.skills : state.skills);
+  renderSkills();
 }
 
 async function uploadFiles(files) {
@@ -595,13 +997,15 @@ async function uploadFiles(files) {
     if (state.activeProjectId) body.append("projectId", state.activeProjectId);
     const response = await fetch("/api/files/upload", { method: "POST", body });
     const data = await response.json();
-    activeChat().messages.push({ role: "assistant", content: `Attached ${data.upload.filename} (${data.upload.size} bytes).` });
+    if (data.upload) state.pendingAttachments.push(data.upload);
   }
-  renderMessages();
+  renderAttachmentChips();
+  dom.fileInput.value = "";
 }
 
 function applyEvent(event) {
   const chat = activeChat();
+  if (event.autoPlan) state.planningMode = true;
   if (event.type === "status") {
     chat.trace.push(event);
   } else if (event.type === "plan") {
@@ -623,6 +1027,8 @@ function applyEvent(event) {
   }
   renderPlan(chat.plan);
   renderLogs(chat.trace);
+  applyPlanningVisibility();
+  updateLiveChangeSummary();
 
   const stepsContainer = document.getElementById("thinking-steps-container");
   if (stepsContainer && state.sending) {
@@ -691,10 +1097,12 @@ async function sendTask() {
     renderLogs([{ type: "error", error: "No active chat is available." }]);
     return;
   }
-  chat.messages.push({ role: "user", content: task });
+  const promptAttachments = [...state.pendingAttachments];
+  chat.messages.push({ role: "user", content: task, attachments: promptAttachments });
   chat.plan = [];
   chat.trace = [];
   dom.composer.value = "";
+  state.pendingAttachments = [];
   updateSkillMenuFromInput();
   
   state.sending = true;
@@ -712,15 +1120,18 @@ async function sendTask() {
       signal: state.controller.signal,
       body: JSON.stringify({
         task,
-        history: chat.messages.slice(0, -1),
+        history: historyForRequest(chat),
+        attachments: promptAttachments,
         projectRoot: activeProject()?.rootPath,
         projectId: state.activeProjectId,
         chatId: state.activeChatId,
-        planningMode: state.planningMode
+        planningMode: state.planningMode,
+        permissionMode: state.permissionMode
       })
     });
     const result = await readStream(response);
-    chat.messages.push({ role: "assistant", content: result?.final ?? "Agent finished without a final response.", files: result?.files ?? [] });
+    const changes = result?.changes?.length ? result.changes : changesFromTrace(chat.trace);
+    chat.messages.push({ role: "assistant", content: result?.final ?? "Agent finished without a final response.", files: result?.files ?? changes.map((item) => item.path), changes });
   } catch (error) {
     chat.messages.push({ role: "assistant", content: error.name === "AbortError" ? "Cancelled." : error.message });
     chat.trace.push({ type: "error", error: error.message });
@@ -732,11 +1143,43 @@ async function sendTask() {
 }
 
 async function openSettings() {
-  const models = await (await fetch("/api/models")).json();
-  document.querySelector("#current-model-name").textContent = models.model ?? "local";
-  const connected = Array.from(dom.settingsModal.querySelectorAll("span")).find((span) => span.textContent.includes("CONNECTED") || span.textContent.includes("OFFLINE") || span.textContent.includes("ollama"));
-  if (connected) connected.textContent = models.error ? "OFFLINE" : `${models.provider}: ${models.model}`;
   dom.settingsModal.classList.remove("hidden");
+  refreshBrowserSession();
+  const connected = Array.from(dom.settingsModal.querySelectorAll("span")).find((span) => span.textContent.includes("CONNECTED") || span.textContent.includes("OFFLINE") || span.textContent.includes("ollama"));
+  try {
+    const models = await (await fetch("/api/models")).json();
+    document.querySelector("#current-model-name").textContent = models.model ?? "local";
+    if (connected) connected.textContent = models.error ? "OFFLINE" : `${models.provider}: ${models.model}`;
+  } catch (_error) {
+    if (connected) connected.textContent = "OFFLINE";
+  }
+}
+
+async function refreshBrowserSession() {
+  if (!dom.browserSessionBadge || !dom.browserSessionMessage) return;
+  try {
+    const data = await (await fetch("/api/browser-session")).json();
+    dom.browserSessionBadge.textContent = data.active ? "ACTIVE" : "OFF";
+    dom.browserSessionBadge.className = data.active
+      ? "px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] font-bold"
+      : "px-2 py-0.5 rounded-full bg-surface-variant text-on-surface-variant text-[10px] font-bold";
+    dom.browserSessionMessage.textContent = data.message ?? "No authenticated browser session is active.";
+  } catch (error) {
+    dom.browserSessionMessage.textContent = `Browser status unavailable: ${error.message}`;
+  }
+}
+
+async function startBrowserSession() {
+  const data = await (await fetch("/api/browser-session/start", { method: "POST" })).json();
+  await refreshBrowserSession();
+  if (dom.browserSessionMessage && (data.blocked || data.error)) {
+    dom.browserSessionMessage.textContent = data.message ?? data.error;
+  }
+}
+
+async function closeBrowserSession() {
+  await fetch("/api/browser-session/close", { method: "POST" });
+  await refreshBrowserSession();
 }
 
 async function saveSettings() {
@@ -751,26 +1194,9 @@ async function saveSettings() {
 
 dom.newProject.addEventListener("click", createProject);
 dom.openProject?.addEventListener("click", async () => {
-  const res = await fetch("/api/select-folder", { method: "POST", body: JSON.stringify({}) });
-  const data = await res.json();
-  if (data.cancelled || !data.path) return;
-  const name = data.path.split("\\").pop() || "Project";
-  const response = await fetch("/api/projects", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, rootPath: data.path })
-  });
-  const projData = await response.json();
-  state.projects.unshift(projData.project);
-  state.chats = [projData.chat, ...state.chats];
-  state.activeProjectId = projData.project.id;
-  state.activeChatId = projData.chat.id;
-  if (projData.chat && !projData.chat.messages?.length && state.bootstrap) {
-    projData.chat.messages = [{ role: "assistant", content: state.bootstrap.app.welcome }];
-  }
-  renderAll();
+  await selectProjectFolder("open");
 });
-dom.newChat.addEventListener("click", (event) => {
+dom.newChat?.addEventListener("click", (event) => {
   event.preventDefault();
   createChat();
 });
@@ -787,9 +1213,43 @@ dom.skillsButton.addEventListener("click", () => {
 });
 dom.attachButton.addEventListener("click", () => dom.fileInput.click());
 dom.fileInput.addEventListener("change", () => uploadFiles(Array.from(dom.fileInput.files ?? [])));
+dom.browserSessionStart?.addEventListener("click", startBrowserSession);
+dom.browserSessionClose?.addEventListener("click", closeBrowserSession);
+dom.sidebarSkillsToggle?.addEventListener("click", () => toggleSidebarSkills());
 dom.composer.addEventListener("input", updateSkillMenuFromInput);
 dom.composer.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") toggleSkills(false);
+  if (event.key === "Escape") {
+    toggleSkills(false);
+    state.selectedSkillIndex = -1;
+    renderSkills();
+  }
+
+  const isDropdownVisible = !dom.skillsDropdown.classList.contains("hidden");
+  if (isDropdownVisible && state.filteredSkills.length > 0) {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      state.selectedSkillIndex = (state.selectedSkillIndex + 1) % state.filteredSkills.length;
+      renderSkills();
+      return;
+    }
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      state.selectedSkillIndex = (state.selectedSkillIndex - 1 + state.filteredSkills.length) % state.filteredSkills.length;
+      renderSkills();
+      return;
+    }
+    if (event.key === "Enter" || event.key === "Tab") {
+      if (state.selectedSkillIndex >= 0) {
+        event.preventDefault();
+        const skill = state.filteredSkills[state.selectedSkillIndex];
+        dom.composer.value = `${skill.trigger || `/${skill.name}`} `;
+        toggleSkills(false);
+        state.selectedSkillIndex = -1;
+        return;
+      }
+    }
+  }
+
   if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
     sendTask();
@@ -797,7 +1257,7 @@ dom.composer.addEventListener("keydown", (event) => {
 });
 dom.planningToggle.addEventListener("click", () => {
   state.planningMode = !state.planningMode;
-  dom.planningToggle.classList.toggle("border-primary", state.planningMode);
+  applyPlanningVisibility();
 });
 dom.send.addEventListener("click", (event) => {
   event.preventDefault();
@@ -963,6 +1423,7 @@ permsBtn?.addEventListener("click", () => {
 permsDropdown?.querySelectorAll("button").forEach(btn => {
   btn.addEventListener("click", (e) => {
     currentPerms.textContent = e.target.textContent;
+    state.permissionMode = e.currentTarget.dataset.permissionMode === "safe" ? "safe" : "full";
     permsDropdown.classList.add("hidden");
   });
 });

@@ -4,6 +4,8 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Vogi - Agentic AI Workspace</title>
+<link rel="icon" type="image/png" href="/assets/assets/vogi-logo.png"/>
+<link rel="apple-touch-icon" href="/assets/assets/vogi-logo.png"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=Geist:wght@400;500&amp;display=swap" rel="stylesheet"/>
@@ -153,25 +155,17 @@
 </div>
 <!-- Scrollable Navigation Area -->
 <div class="flex-1 overflow-y-auto py-gutter px-3 flex flex-col gap-6">
-<!-- CTA -->
-<button data-vogi="new-project" class="w-full bg-primary text-on-primary-container font-title-md text-title-md py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-primary-fixed transition-colors shadow-sm mb-2">
-<span class="material-symbols-outlined text-[20px]">add</span>
-                New Project
+<div class="flex items-center justify-between gap-2 px-1">
+<span class="font-code-label text-code-label text-outline uppercase tracking-wider font-semibold">Projects</span>
+<button data-vogi="new-project" class="h-8 px-2 rounded-lg bg-primary/15 text-primary border border-primary/30 flex items-center gap-1.5 hover:bg-primary/25 transition-colors" title="New Project" type="button">
+<span class="material-symbols-outlined text-[18px]">create_new_folder</span>
+<span class="text-[12px] font-semibold">New</span>
 </button>
+</div>
 <button data-vogi="open-project" class="w-full bg-surface-container text-on-surface font-title-md text-title-md py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-surface-variant transition-colors shadow-sm">
 <span class="material-symbols-outlined text-[20px]">folder_open</span>
                 Open Project
 </button>
-<!-- Main Tabs -->
-<ul class="flex flex-col gap-1">
-<!-- Active Tab -->
-<li class="">
-<a data-vogi="new-chat" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-container-high text-primary font-bold hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 transition-all" href="#">
-<span class="material-symbols-outlined text-[20px]">add_comment</span>
-                        New Chat
-                    </a>
-</li>
-</ul>
 <!-- Custom Injection: Search & Recent Projects -->
 <div class="flex flex-col gap-3 mt-2">
 <div class="px-3">
@@ -244,38 +238,32 @@
 <!-- Bottom Tabs (from main tab array) -->
 <div class="px-3 mb-6">
 <div class="group cursor-pointer">
-<div class="flex items-center justify-between text-on-surface-variant hover:text-on-surface transition-colors mb-2">
+<button data-vogi="sidebar-skills-toggle" type="button" class="w-full flex items-center justify-between text-on-surface-variant hover:text-on-surface transition-colors mb-2">
 <div class="flex items-center gap-2 font-bold text-body-sm uppercase tracking-wider">
 <span class="material-symbols-outlined text-[18px]">neurology</span>
 <span class="">Skills</span>
 </div>
-<span class="material-symbols-outlined text-[16px] group-hover:rotate-180 transition-transform">expand_more</span>
-</div>
-<ul data-vogi="sidebar-skills" class="flex flex-col gap-1 pl-6">
+<span data-vogi="sidebar-skills-icon" class="material-symbols-outlined text-[16px] transition-transform">expand_more</span>
+</button>
+<ul data-vogi="sidebar-skills" class="hidden flex flex-col gap-1 pl-6">
 <li class=""><a class="flex items-center gap-2 py-1.5 text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined text-[16px]">travel_explore</span>Web Search</a></li>
 <li class=""><a class="flex items-center gap-2 py-1.5 text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined text-[16px]">image</span>Image Generation</a></li>
 <li class=""><a class="flex items-center gap-2 py-1.5 text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined text-[16px]">code</span>Code Analysis</a></li>
 <li class=""><a class="flex items-center gap-2 py-1.5 text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined text-[16px]">settings</span>Settings</a></li>
 </ul>
 </div>
-</div><ul class="flex flex-col gap-1 mt-auto">
-<li class="">
+</div>
+</div>
+<div class="p-4 border-t border-outline-variant/50 flex flex-col gap-1 sticky bottom-0 bg-surface-container-low">
 <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 transition-all" href="#">
 <span class="material-symbols-outlined text-[20px]">settings</span>
                         Settings
                     </a>
-</li>
-<li class="">
 <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 transition-all" href="#">
 <span class="material-symbols-outlined text-[20px]">help</span>
                         Help
                     </a>
-</li>
-</ul>
-</div>
-<!-- Footer -->
-<div class="p-4 border-t border-outline-variant/50 flex flex-col gap-1">
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 transition-all" href="#">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 transition-all" href="#" data-vogi="logout">
 <span class="material-symbols-outlined text-[20px]">logout</span>
                 Logout
             </a>
@@ -381,7 +369,7 @@
 <div class="relative">
 <button id="permissions-btn" type="button" class="flex items-center gap-1 hover:text-on-surface transition-colors px-2 py-1 rounded-md whitespace-nowrap flex-shrink-0">
 <span class="material-symbols-outlined text-[16px] text-error flex-shrink-0">lock_open</span>
-                                <span id="current-permission">Full Access</span>
+                                <span id="current-permission">Full Access (current user)</span>
                                 <span class="material-symbols-outlined text-[14px] flex-shrink-0">expand_more</span>
 </button>
 <div id="permissions-dropdown" class="absolute bottom-full right-0 mb-2 w-48 bg-surface-container-high border border-outline-variant rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.5)] overflow-hidden flex flex-col z-20 hidden">
@@ -389,8 +377,8 @@
 <span class="font-code-label text-[11px] text-outline uppercase tracking-wider font-semibold">Permissions</span>
 </div>
 <ul class="flex flex-col py-1">
-<li><button type="button" class="w-full text-left px-3 py-2 text-body-sm text-on-surface hover:bg-surface-variant transition-colors">Full Access</button></li>
-<li><button type="button" class="w-full text-left px-3 py-2 text-body-sm text-on-surface hover:bg-surface-variant transition-colors">Safe Mode</button></li>
+<li><button type="button" data-permission-mode="full" class="w-full text-left px-3 py-2 text-body-sm text-on-surface hover:bg-surface-variant transition-colors">Full Access (current user)</button></li>
+<li><button type="button" data-permission-mode="safe" class="w-full text-left px-3 py-2 text-body-sm text-on-surface hover:bg-surface-variant transition-colors">Safe Mode</button></li>
 </ul>
 </div>
 </div>
@@ -400,6 +388,7 @@
                             <span class="text-on-surface-variant flex-shrink-0">Project Root:</span> <span id="current-project-root" class="text-on-surface truncate" title="./src">./src</span>
 </div>
 </div>
+<div data-vogi="attachment-chips" class="hidden flex flex-wrap gap-2 mb-2"></div>
 <!-- Main Input -->
 <div class="relative flex items-end gap-2 bg-surface-dim border border-outline-variant rounded-xl p-2 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/50 transition-all shadow-inner">
 <!-- Skills Dropdown Menu (Activated on '/') -->
@@ -447,8 +436,8 @@
 </button>
 <input data-vogi="file-input" class="hidden" type="file" multiple/><textarea data-vogi="composer" class="w-full bg-transparent border-none text-on-surface font-body-md text-body-md resize-none focus:ring-0 placeholder:text-outline p-2 min-h-[44px] max-h-[200px] scrollbar-hide" placeholder="Reply or instruct the agent..." rows="1"></textarea>
 <div class="flex flex-col gap-2 flex-shrink-0 pb-1 pr-1">
-<button data-vogi="planning-toggle" type="button" class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container text-on-surface-variant hover:text-primary border border-outline-variant hover:border-primary/50 transition-all border-primary" title="Toggle Planning Mode">
-<span class="material-symbols-outlined text-[18px]">account_tree</span>
+<button data-vogi="planning-toggle" type="button" class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container text-on-surface-variant hover:text-primary border border-outline-variant hover:border-primary/50 transition-all" title="Show execution plan">
+<span class="material-symbols-outlined text-[18px]">route</span>
 </button>
 <button data-vogi="send" type="button" class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-on-primary hover:bg-primary-fixed transition-colors shadow-sm" title="Send">
 <span class="material-symbols-outlined text-[18px]">send</span>
@@ -580,7 +569,7 @@
 <div class="space-y-4">
 <div class="p-4 rounded-xl border border-outline-variant/50 bg-surface-dim">
 <div class="flex items-center justify-between mb-3">
-<span class="font-medium">Local Model (Ollama/LM Studio)</span>
+<span class="font-medium">Model Provider</span>
 <span class="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] font-bold">CONNECTED</span>
 </div>
 <div class="flex gap-2">
@@ -593,6 +582,18 @@
 <span class="font-medium">OpenAI API</span>
 </div>
 <input class="w-full bg-surface-container border border-outline-variant rounded px-3 py-1.5 text-body-sm outline-none" placeholder="sk-..." type="password"/>
+</div>
+<div class="p-4 rounded-xl border border-outline-variant/50 bg-surface-dim">
+<div class="flex items-center justify-between mb-2">
+<span class="font-medium">Authenticated Web Browser</span>
+<span data-vogi="browser-session-badge" class="px-2 py-0.5 rounded-full bg-surface-variant text-on-surface-variant text-[10px] font-bold">OFF</span>
+</div>
+<p data-vogi="browser-session-message" class="text-body-sm text-on-surface-variant mb-3">Use a visible Edge session for pages that require your login.</p>
+<p class="text-[11px] text-outline-variant mb-3">Close ordinary Microsoft Edge first. Vogi never closes it automatically, and any form submission or external change requires your confirmation.</p>
+<div class="flex gap-2">
+<button data-vogi="browser-session-start" type="button" class="px-3 py-2 rounded-lg bg-primary text-on-primary text-body-sm font-semibold">Start Browser Session</button>
+<button data-vogi="browser-session-close" type="button" class="px-3 py-2 rounded-lg border border-outline-variant text-on-surface-variant text-body-sm font-semibold">Close Session</button>
+</div>
 </div>
 </div>
 </section>
@@ -626,5 +627,5 @@ Start Model
 </div>
 </div>
 </div>
-<script src="/assets/raw-platform.js" type="module"></script>
+<script src="/assets/raw-platform.js?v=web-retrieval-session-1" type="module"></script>
 </body></html>

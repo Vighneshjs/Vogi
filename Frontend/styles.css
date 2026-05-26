@@ -398,8 +398,10 @@ select:focus {
   text-align: left;
 }
 
-.skill-menu-button:hover {
+.skill-menu-button:hover,
+.skill-menu-button.selected {
   background: #2a3541;
+  border-left-color: var(--primary);
 }
 
 .skill-menu-button span {

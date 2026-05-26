@@ -12,6 +12,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 
 from .config import Settings
+from .services.capabilities import CapabilityRegistry
+from .services.utils import slugify
 
 
 def now() -> datetime:
@@ -80,9 +82,17 @@ class JsonStore:
             self.write({"projects": {}, "chats": {}, "memories": {}, "skills": {}, "uploads": {}})
 
     def read(self) -> dict[str, Any]:
-        data = json.loads(self.path.read_text(encoding="utf-8"))
+        try:
+            raw = self.path.read_text(encoding="utf-8")
+            data = json.loads(raw) if raw.strip() else {}
+        except json.JSONDecodeError:
+            backup = self.path.with_suffix(f".corrupt-{datetime.now().strftime('%Y%m%d%H%M%S')}.json")
+            self.path.replace(backup)
+            data = {}
         for key in ["projects", "chats", "memories", "skills", "uploads"]:
             data.setdefault(key, {})
+        if not self.path.exists():
+            self.write(data)
         return data
 
     def write(self, payload: dict[str, Any]) -> None:
@@ -155,6 +165,10 @@ BUILTIN_SKILLS: list[dict[str, Any]] = [
     },
 ]
 
+for capability_skill in CapabilityRegistry().public_skills():
+    if not any(existing["name"] == capability_skill["name"] for existing in BUILTIN_SKILLS):
+        BUILTIN_SKILLS.append(capability_skill)
+
 
 class Storage:
     def __init__(self, settings: Settings) -> None:
@@ -195,9 +209,21 @@ class Storage:
 
     def ensure_default_project(self) -> dict[str, Any]:
         projects = self.list_projects()
-        if projects:
-            return projects[0]
-        return self.save_project({"name": self.settings.root_dir.name, "rootPath": str(self.settings.root_dir)})
+        system = next((project for project in projects if project.get("kind") == "system"), None)
+        if system:
+            return system
+        legacy_system = next(
+            (
+                project
+                for project in projects
+                if Path(project.get("rootPath") or "").resolve() == self.settings.root_dir.resolve()
+                and project.get("name") == self.settings.root_dir.name
+            ),
+            None,
+        )
+        if legacy_system:
+            return self.save_project({**legacy_system, "kind": "system"})
+        return self.save_project({"name": self.settings.root_dir.name, "rootPath": str(self.settings.root_dir), "kind": "system"})
 
     def ensure_default_chat(self, project_id: str) -> dict[str, Any]:
         chats = self.list_chats(project_id)
@@ -210,6 +236,7 @@ class Storage:
             "id": str(payload.get("id") or uuid.uuid4()),
             "name": str(payload.get("name") or "New Project"),
             "rootPath": str(payload.get("rootPath") or self.settings.root_dir),
+            "kind": str(payload.get("kind") or "external"),
             "createdAt": payload.get("createdAt") or iso_now(),
             "updatedAt": iso_now(),
         }
@@ -230,6 +257,24 @@ class Storage:
         data["projects"][item["id"]] = item
         self.json_store.write(data)
         return item
+
+    def create_project(self, name: str, root_path: str | None = None) -> dict[str, Any]:
+        project_id = str(uuid.uuid4())
+        if root_path:
+            return self.save_project({
+                "id": project_id,
+                "name": name,
+                "rootPath": str(Path(root_path).resolve()),
+                "kind": "external",
+            })
+        root = self.settings.projects_dir / f"{slugify(name)}-{project_id[:8]}"
+        root.mkdir(parents=True, exist_ok=False)
+        return self.save_project({
+            "id": project_id,
+            "name": name,
+            "rootPath": str(root),
+            "kind": "managed",
+        })
 
     def list_projects(self) -> list[dict[str, Any]]:
         if self.engine is not None:
@@ -419,15 +464,16 @@ class Storage:
         self.json_store.write(data)
         return item
 
-    def search(self, query: str) -> dict[str, list[dict[str, Any]]]:
+    def search(self, query: str, project_id: str | None = None) -> dict[str, list[dict[str, Any]]]:
         needle = query.lower().strip()
+        scoped_projects = [project for project in self.list_projects() if not project_id or project["id"] == project_id]
         if not needle:
-            return {"projects": self.list_projects(), "chats": [], "skills": self.list_skills(), "memories": []}
-        projects = [item for item in self.list_projects() if needle in item.get("name", "").lower() or needle in item.get("rootPath", "").lower()]
+            return {"projects": scoped_projects, "chats": [], "skills": self.list_skills(), "memories": []}
+        projects = [item for item in scoped_projects if needle in item.get("name", "").lower() or needle in item.get("rootPath", "").lower()]
         skills = [item for item in self.list_skills() if needle in item.get("name", "").lower() or needle in item.get("description", "").lower()]
         chats: list[dict[str, Any]] = []
         memories: list[dict[str, Any]] = []
-        for project in self.list_projects():
+        for project in scoped_projects:
             chats.extend([chat for chat in self.list_chats(project["id"]) if needle in chat.get("title", "").lower() or needle in json.dumps(chat.get("messages", [])).lower()])
             memories.extend([memory for memory in self.list_memories(project["id"]) if needle in memory.get("key", "").lower() or needle in json.dumps(memory.get("value", {})).lower()])
         return {"projects": projects, "chats": chats, "skills": skills, "memories": memories}

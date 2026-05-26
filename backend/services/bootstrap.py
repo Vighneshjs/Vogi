@@ -17,7 +17,7 @@ class BootstrapService:
             "app": {
                 "name": "Vogi",
                 "tagline": "Agentic AI Workspace",
-                "welcome": "Ready. I am Vogi, running on the standalone Python backend. I can plan, inspect files, edit code, run safe commands, create tools and skills, browse URLs, inspect images, and connect to local or API-key models.",
+                "welcome": "Ready. I am Vogi, running on the standalone Python backend. I can plan, read and edit code, run safe commands, create tools and skills, browse URLs, generate documents, and connect to API-key models.",
             },
             "projectRoot": str(self.settings.root_dir),
             "activeProjectId": active_project["id"],
@@ -25,7 +25,6 @@ class BootstrapService:
             "runtime": {
                 "provider": self.settings.model_provider,
                 "model": self.settings.agent_model,
-                "inspectionModel": self.settings.inspection_model,
                 "ollamaUrl": self.settings.ollama_url,
             },
             "skills": self.storage.list_skills(),

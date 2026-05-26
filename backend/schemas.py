@@ -8,10 +8,12 @@ from pydantic import BaseModel, Field
 class AgentRequest(BaseModel):
     task: str
     history: list[dict[str, Any]] = Field(default_factory=list)
+    attachments: list[dict[str, Any]] = Field(default_factory=list)
     projectRoot: str | None = None
     projectId: str | None = None
     chatId: str | None = None
-    planningMode: bool = True
+    planningMode: bool = False
+    permissionMode: str = "safe"
 
 
 class ModelSwitchRequest(BaseModel):
@@ -49,6 +51,7 @@ class ChatCreateRequest(BaseModel):
 
 class SearchRequest(BaseModel):
     query: str = ""
+    projectId: str | None = None
 
 
 class MemoryCreateRequest(BaseModel):

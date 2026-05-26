@@ -1,0 +1,81 @@
+INFO:     127.0.0.1:61811 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56687 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56687 - "GET /assets/assets/vogi-logo.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53452 - "GET /assets/assets/vogi-running.gif HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56592 - "GET /assets/raw-platform.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53452 - "GET /api/bootstrap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53452 - "GET /api/models HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53452 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51687 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49791 - "GET /api/models HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49791 - "POST /api/model HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49791 - "POST /api/ollama/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60067 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62799 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62081 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50439 - "GET /api/models HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50439 - "POST /api/model HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64115 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65075 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59436 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59436 - "GET /assets/raw-platform.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59436 - "GET /api/bootstrap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59436 - "GET /api/models HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50485 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50485 - "GET /assets/raw-platform.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50485 - "GET /api/bootstrap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50485 - "GET /api/models HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49464 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49464 - "GET /assets/raw-platform.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49464 - "GET /api/bootstrap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49464 - "GET /api/models HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60042 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61747 - "GET /api/models HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61747 - "POST /api/model HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61747 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53543 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49256 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65148 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65148 - "GET /assets/raw-platform.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:65148 - "GET /api/bootstrap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65148 - "GET /api/models HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65148 - "GET /api/projects/40acc649-f5e8-453e-abd4-9b20d5f30b02 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51297 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61028 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55862 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55862 - "GET /assets/raw-platform.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55862 - "GET /api/bootstrap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55862 - "GET /api/models HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61472 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61280 - "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61280 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61280 - "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61280 - "GET /api/bootstrap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61280 - "GET /api/models HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59627 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50382 - "GET /api/chats/0afacc3b-ec3a-4926-bab3-610b121a7969 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53093 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56674 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56674 - "GET /assets/raw-platform.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56674 - "GET /api/bootstrap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56674 - "GET /api/models HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56674 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56862 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64313 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51444 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51444 - "GET /assets/raw-platform.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50715 - "GET /assets/assets/vogi-running.gif HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50715 - "GET /api/bootstrap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50715 - "GET /api/models HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52504 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65152 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56047 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56047 - "GET /assets/raw-platform.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56047 - "GET /api/bootstrap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56047 - "GET /api/models HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59403 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59403 - "GET /assets/raw-platform.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:59403 - "GET /api/bootstrap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59403 - "GET /api/models HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63633 - "POST /api/agent/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54175 - "POST /api/agent/stream HTTP/1.1" 200 OK

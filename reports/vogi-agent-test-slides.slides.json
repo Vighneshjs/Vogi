@@ -1,0 +1,19 @@
+{
+  "title": "Vogi Test Slides",
+  "slides": [
+    {
+      "title": "Agent",
+      "body": "",
+      "bullets": [
+        "Plans",
+        "Calls tools",
+        "Verifies"
+      ]
+    },
+    {
+      "title": "Artifacts",
+      "body": "Creates local outputs",
+      "bullets": []
+    }
+  ]
+}

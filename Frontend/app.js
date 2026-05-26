@@ -32,6 +32,9 @@ let controller = null;
 let bootstrap = null;
 let state = loadState();
 
+state.filteredSkills = [];
+state.selectedSkillIndex = -1;
+
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey));
@@ -152,9 +155,12 @@ function renderProjects(projects = []) {
   }
 }
 
-function renderSkills(skills = []) {
+function renderSkills() {
+  const skills = bootstrap?.skills ?? [];
   els.skillList.innerHTML = "";
   els.skillsMenu.innerHTML = "";
+  
+  // Sidebar skills
   for (const skill of skills) {
     const row = document.createElement("article");
     row.className = "skill-item";
@@ -162,9 +168,13 @@ function renderSkills(skills = []) {
     row.querySelector("strong").textContent = skill.name;
     row.querySelector("span").textContent = skill.description;
     els.skillList.append(row);
+  }
 
+  // Dropdown skills
+  state.filteredSkills.forEach((skill, index) => {
+    const isSelected = index === state.selectedSkillIndex;
     const button = document.createElement("button");
-    button.className = "skill-menu-button";
+    button.className = `skill-menu-button ${isSelected ? "selected" : ""}`;
     button.type = "button";
     button.innerHTML = `<strong></strong><span></span>`;
     button.querySelector("strong").textContent = skill.name;
@@ -174,7 +184,34 @@ function renderSkills(skills = []) {
       els.skillsMenu.classList.add("hidden");
       els.chatInput.focus();
     });
+    if (isSelected) {
+      button.scrollIntoView({ block: "nearest" });
+    }
     els.skillsMenu.append(button);
+  });
+}
+
+function toggleSkills(force) {
+  const shouldShow = force ?? els.skillsMenu.classList.contains("hidden");
+  els.skillsMenu.classList.toggle("hidden", !shouldShow);
+}
+
+function updateSkillMenuFromInput() {
+  const value = els.chatInput.value.trimStart();
+  const skills = bootstrap?.skills ?? [];
+  if (value.startsWith("/") && !value.includes(" ")) {
+    const query = value.slice(1).toLowerCase();
+    state.filteredSkills = skills.filter((skill) => 
+      skill.name.toLowerCase().includes(query) || 
+      (skill.trigger || "").toLowerCase().includes(query)
+    );
+    state.selectedSkillIndex = state.filteredSkills.length > 0 ? 0 : -1;
+    renderSkills();
+    toggleSkills(true);
+  } else {
+    state.filteredSkills = [];
+    state.selectedSkillIndex = -1;
+    toggleSkills(false);
   }
 }
 
@@ -190,7 +227,8 @@ async function loadBootstrap() {
   if (!state.projectRoot) state.projectRoot = data.projectRoot;
   if (!activeChat().messages.length) activeChat().messages.push({ role: "assistant", content: data.app.welcome });
   renderProjects(data.projects);
-  renderSkills(data.skills);
+  state.filteredSkills = data.skills ?? [];
+  renderSkills();
   saveState();
   render();
 }
@@ -276,6 +314,41 @@ async function readStream(response, chat) {
   }
   return finalEvent;
 }
+
+els.chatInput.addEventListener("input", updateSkillMenuFromInput);
+els.chatInput.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    toggleSkills(false);
+    state.selectedSkillIndex = -1;
+    renderSkills();
+  }
+
+  const isDropdownVisible = !els.skillsMenu.classList.contains("hidden");
+  if (isDropdownVisible && state.filteredSkills.length > 0) {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      state.selectedSkillIndex = (state.selectedSkillIndex + 1) % state.filteredSkills.length;
+      renderSkills();
+      return;
+    }
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      state.selectedSkillIndex = (state.selectedSkillIndex - 1 + state.filteredSkills.length) % state.filteredSkills.length;
+      renderSkills();
+      return;
+    }
+    if (event.key === "Enter" || event.key === "Tab") {
+      if (state.selectedSkillIndex >= 0) {
+        event.preventDefault();
+        const skill = state.filteredSkills[state.selectedSkillIndex];
+        els.chatInput.value = `${skill.trigger || `/${skill.name}`} `;
+        toggleSkills(false);
+        state.selectedSkillIndex = -1;
+        return;
+      }
+    }
+  }
+});
 
 els.chatForm.addEventListener("submit", async (event) => {
   event.preventDefault();

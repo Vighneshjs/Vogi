@@ -1,0 +1,43 @@
+{
+  "projects": {},
+  "chats": {},
+  "memories": {},
+  "skills": {
+    "job_application_agent": {
+      "name": "job_application_agent",
+      "trigger": "/jobs",
+      "description": "Find jobs and prepare application packets from a user resume.",
+      "instructions": "",
+      "tools": [
+        "browse_jobs",
+        "read_file",
+        "prepare_job_application",
+        "create_artifact"
+      ],
+      "examples": [],
+      "builtin": true,
+      "createdAt": "2026-05-20T18:04:38.745519+00:00",
+      "updatedAt": "2026-05-20T18:04:38.745519+00:00"
+    },
+    "document_agent": {
+      "name": "document_agent",
+      "trigger": "/docs",
+      "description": "Create formatted documents, PDFs, reports, and slide outlines.",
+      "instructions": "",
+      "tools": [
+        "create_artifact",
+        "create_slides",
+        "read_file"
+      ],
+      "examples": [],
+      "builtin": true,
+      "createdAt": "2026-05-20T18:04:38.772903+00:00",
+      "updatedAt": "2026-05-20T18:04:38.772903+00:00"
+    }
+  },
+  "uploads": {}
+}"updatedAt": "2026-05-20T18:04:38.772903+00:00"
+    }
+  },
+  "uploads": {}
+}

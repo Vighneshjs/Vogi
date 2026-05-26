@@ -1,0 +1,6 @@
+{
+  "name": "list_eval_files",
+  "description": "Recursively list all files in the current project directory (non-destructive). Run from the project root.",
+  "command": "Get-ChildItem -Path . -Recurse -File | Select-Object -ExpandProperty FullName",
+  "createdAt": "2026-05-22T09:21:08.623902+00:00"
+}
